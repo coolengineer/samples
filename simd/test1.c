@@ -15,8 +15,7 @@ __attribute__((aligned(16))) float orig[items];
 __attribute__((aligned(16))) float dst1[items];
 __attribute__((aligned(16))) float dst2[items];
 
-void init()
-{
+void init() {
     timer_start("Init... %ld items, %ld bytes * 3\n", items, sizeof(orig));
     for( int i=0; i<items; i++ ) {
         orig[i] = ((float) rand()) * powf(10.f, (float) (rand() % 20));
@@ -26,15 +25,12 @@ void init()
     timer_end();
 }
 
-void compare(const char *title)
-{
+void compare(const char *title) {
     printf("%s Compare... ", title);
-    if (!memcmp(dst1, dst2, sizeof dst1)) { printf("OK\n"); } else { printf("Failed\n"); }
-    printf("\n");
+    if (!memcmp(dst1, dst2, sizeof dst1)) { printf("OK\n\n"); } else { printf("Failed\n\n"); }
 }
 
-void prepare()
-{
+void prepare() {
     timer_start("Calc with math lib...\n");
     int i;
     for(i=0; i<items; i++) {
@@ -43,8 +39,7 @@ void prepare()
     timer_end();
 }
 
-void test1()
-{
+void test1() {
     timer_start("Calc with math SSE (take1)...\n");
     int i;
     for (i=0; i<items; i+= sizeof(__m128)/sizeof(float)) {
@@ -54,8 +49,7 @@ void test1()
     compare("SSE (take1)");
 }
 
-void test2()
-{
+void test2() {
     timer_start("Calc with math SSE (take2)...\n");
     int i;
     for (i=0; i<items; i+= sizeof(__m128)/sizeof(float)) {
@@ -65,8 +59,7 @@ void test2()
     compare("SSE (take2)");
 }
 
-int main()
-{
+int main() {
     init();
     prepare();
     test1();
