@@ -5,7 +5,8 @@
 #include <sys/time.h>
 #include <xmmintrin.h>
 
-#define timer_start() struct timeval _t1, _t2, _t3; gettimeofday(&_t1,NULL)
+#define timer_start(fmt, ...) struct timeval _t1, _t2, _t3; gettimeofday(&_t1,NULL); \
+    printf(fmt,##__VA_ARGS__)
 #define timer_end() gettimeofday(&_t2,NULL); timersub(&_t2,&_t1,&_t3);\
     printf("Elapsed: %ld.%06ld secs.\n\n", _t3.tv_sec, _t3.tv_usec)
 
@@ -16,8 +17,7 @@ __attribute__((aligned(16))) float dst2[items];
 
 void init()
 {
-    timer_start();
-    printf("Init... %ld items\n", items);
+    timer_start("Init... %ld items, %ld bytes * 3\n", items, sizeof(orig));
     for( int i=0; i<items; i++ ) {
         orig[i] = ((float) rand()) * powf(10.f, (float) (rand() % 20));
     }
@@ -26,10 +26,16 @@ void init()
     timer_end();
 }
 
-void test1()
+void compare(const char *title)
 {
-    timer_start();
-    printf("Calc with math lib...\n");
+    printf("%s Compare... ", title);
+    if (!memcmp(dst1, dst2, sizeof dst1)) { printf("OK\n"); } else { printf("Failed\n"); }
+    printf("\n");
+}
+
+void prepare()
+{
+    timer_start("Calc with math lib...\n");
     int i;
     for(i=0; i<items; i++) {
         dst1[i] = sqrtf(orig[i]);
@@ -37,35 +43,34 @@ void test1()
     timer_end();
 }
 
-void test2()
+void test1()
 {
-    timer_start();
-    printf("Calc with math SSE (take1)...\n");
+    timer_start("Calc with math SSE (take1)...\n");
     int i;
     for (i=0; i<items; i+= sizeof(__m128)/sizeof(float)) {
         *(__m128 *) &dst2[i] = _mm_sqrt_ps( *(__m128 *) &orig[i] );
     }
     timer_end();
+    compare("SSE (take1)");
 }
 
-void compare()
+void test2()
 {
-    timer_start();
-    printf("Compare... ");
-    if (!memcmp(dst1, dst2, sizeof dst1)) {
-        printf("OK\n");
-    } else {
-        printf("Failed\n");
+    timer_start("Calc with math SSE (take2)...\n");
+    int i;
+    for (i=0; i<items; i+= sizeof(__m128)/sizeof(float)) {
+        _mm_stream_ps(&dst2[i], _mm_sqrt_ps( *(__m128 *) &orig[i] ));
     }
     timer_end();
+    compare("SSE (take2)");
 }
 
 int main()
 {
     init();
+    prepare();
     test1();
     test2();
-    compare();
     return 0;
 }
 
