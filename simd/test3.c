@@ -38,33 +38,21 @@ void prepare() {
     timer_end();
 }
 
-void test1() {
+void test4() {
     memset(dst2, sizeof dst2, 0);
-    timer_start("Calc with math SSE (take1)...\n");
+    timer_start("Calc with math SSE (take4)...\n");
     int i;
-    for (i=0; i<items; i+= sizeof(__m128)/sizeof(float)) {
-        *(__m128 *) &dst2[i] = _mm_sqrt_ps( *(__m128 *) &orig[i] );
+    for (i=0; i<items; i+= sizeof(__m512)/sizeof(float)) {
+        _mm512_stream_ps(&dst2[i], _mm512_sqrt_ps( *(__m512 *) &orig[i] ));
     }
     timer_end();
-    compare("SSE (take1)");
-}
-
-void test2() {
-    memset(dst2, sizeof dst2, 0);
-    timer_start("Calc with math SSE (take2)...\n");
-    int i;
-    for (i=0; i<items; i+= sizeof(__m128)/sizeof(float)) {
-        _mm_stream_ps(&dst2[i], _mm_sqrt_ps( *(__m128 *) &orig[i] ));
-    }
-    timer_end();
-    compare("SSE (take2)");
+    compare("SSE (take4)");
 }
 
 int main() {
     init();
     prepare();
-    test1();
-    test2();
+    test4();
     return 0;
 }
 
